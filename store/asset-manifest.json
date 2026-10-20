@@ -1,0 +1,20 @@
+{
+  "short_description_characters": 78,
+  "full_description_characters": 2332,
+  "assets": [
+    {
+      "file": "graphics/app-icon-512.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 6602,
+      "mode": "RGB"
+    },
+    {
+      "file": "graphics/feature-1024x500.png",
+      "width": 1024,
+      "height": 500,
+      "bytes": 87993,
+      "mode": "RGB"
+    }
+  ]
+}
