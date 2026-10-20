@@ -35,6 +35,10 @@ class StudioFlowTest {
         compose.onNodeWithContentDescription("Edit profile").performClick()
         compose.onNodeWithText("Creator name").performTextReplacement("Alex Morgan")
         compose.onNodeWithText("Save profile").performClick()
+        compose.onNodeWithContentDescription("Use my camera").performScrollTo().performClick()
+        compose.onNodeWithText("Your camera, just for you").assertIsDisplayed()
+        compose.onNodeWithText("Use background").performClick()
+        compose.runOnIdle { assertFalse(model.config.camera) }
         compose.onNodeWithText("Start practice live").performScrollTo().performClick()
         compose.onNodeWithText("SIMULATED").assertIsDisplayed()
         compose.runOnIdle {
@@ -60,7 +64,12 @@ class StudioFlowTest {
         compose.onNodeWithText("Finish session").performClick()
         compose.onNodeWithText("Look at you go.").assertIsDisplayed()
         screenshot("04-summary")
-        compose.runOnIdle { assertEquals(1, model.history.size) }
+        compose.runOnIdle {
+            assertEquals(1, model.history.size)
+            // A new model must load the journal from disk, beyond configuration-change retention.
+            val reloaded = StudioModel(compose.activity.application)
+            assertEquals(model.history, reloaded.history)
+        }
         compose.onNodeWithText("Back to studio").performScrollTo().performClick()
         compose.activityRule.scenario.recreate()
         compose.onNodeWithText("Sessions", useUnmergedTree = true).performClick()
