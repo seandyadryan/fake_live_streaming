@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
@@ -81,6 +82,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun LiveMuseApp(model: StudioModel = viewModel()) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val localeTags = LocalConfiguration.current.locales.toLanguageTags()
+    LaunchedEffect(localeTags) { model.refreshChatLanguage() }
     var endDialog by remember { mutableStateOf(false) }
     LaunchedEffect(model.screen, lifecycle) {
         if (model.screen == "live") lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {

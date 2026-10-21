@@ -68,4 +68,25 @@ class SimulatorTest {
         state = simulator.sendGift(state, giftCatalog.last())
         assertEquals(1, state.gift?.combo)
     }
+
+    @Test fun `generated chat and self label change language without rewriting user input`() {
+        val translated = ChatContent.English.copy(welcome = "Selamat datang!", general = List(8) { "Komentar $it" },
+            music = "Inspirasi musik?", story = "Apa lanjutannya?", daily = "Apa kabar hari ini?", you = "Anda")
+        val simulator = Simulator(Random(9))
+        val config = StudioConfig(crowd = Crowd.VIRAL)
+        var state = simulator.initial(config)
+        state = simulator.comment(state, "My own original words")
+        state = state.withChatLanguage(translated)
+        assertEquals(translated.welcome, state.chat.first().message)
+        assertEquals("Anda", state.chat.last().name)
+        assertEquals("My own original words", state.chat.last().message)
+        Topic.entries.forEach { topic ->
+            val next = simulator.step(state.copy(seconds = 3), config.copy(topic = topic), translated)
+            assertEquals(when(topic) { Topic.CHAT -> translated.daily; Topic.MUSIC -> translated.music; Topic.STORY -> translated.story }, next.chat.last().message)
+        }
+        repeat(50) { state = simulator.step(state, config, translated) }
+        state.chat.forEach { line -> assertEquals(translated.message(requireNotNull(line.prompt)), line.message) }
+        val restored = state.withChatLanguage(ChatContent.English)
+        restored.chat.forEach { line -> assertEquals(ChatContent.English.message(requireNotNull(line.prompt)), line.message) }
+    }
 }

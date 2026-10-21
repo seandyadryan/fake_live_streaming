@@ -27,6 +27,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -102,7 +103,7 @@ internal fun LiveScreen(model: StudioModel, onEnd: () -> Unit) {
                     }
                     Surface(color = Color.Black.copy(.48f), shape = CircleShape) {
                         Row(Modifier.heightIn(min = 48.dp).padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(StudioIcons.Visibility, "Simulated viewers", Modifier.size(16.dp))
+                            Icon(StudioIcons.Visibility, "Viewers", Modifier.size(16.dp))
                             Spacer(Modifier.width(5.dp))
                             Text(compact(state.viewers), fontSize = 12.sp)
                         }
@@ -110,15 +111,9 @@ internal fun LiveScreen(model: StudioModel, onEnd: () -> Unit) {
                     IconButton(onClick = onEnd, modifier = Modifier.size(48.dp)) { Icon(StudioIcons.Close, "End session", Modifier.size(28.dp)) }
                 }
                 Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Tag("SIMULATED", Mint)
-                    Spacer(Modifier.width(8.dp))
                     Text("LIVE  ${duration(state.seconds)}", fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.weight(1f))
                     if (!compactRoom) Text("✦ ${state.gifts} gifts", fontSize = 11.sp, color = Color(0xFFFFD185))
-                }
-                if (!compactRoom) {
-                    Text(config.title.ifBlank { "My practice room" }, modifier = Modifier.padding(top = 12.dp), maxLines = 2, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                    Text("${config.topic.label} · ${config.crowd.label} viewers", color = Color.White.copy(.65f), fontSize = 10.sp)
                 }
                 BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                     val celebrationSize = minOf(148.dp, (maxHeight - 55.dp).coerceAtLeast(48.dp))
@@ -143,12 +138,12 @@ internal fun LiveScreen(model: StudioModel, onEnd: () -> Unit) {
                 if (!wide) ChatFeed(state.chat.takeLast(if (compactRoom) 2 else 4), Modifier.fillMaxWidth().padding(end = if (compactRoom) 0.dp else 40.dp).heightIn(max = if (compactRoom) 90.dp else 180.dp))
                 Spacer(Modifier.height(10.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    OutlinedTextField(value = message, onValueChange = { message = it.take(160) }, placeholder = { Text("Say something…", fontSize = 12.sp) },
+                    OutlinedTextField(value = message, onValueChange = { message = it.take(160) }, placeholder = { Text(stringResource(R.string.chat_input_hint), fontSize = 12.sp) },
                         modifier = Modifier.weight(1f), singleLine = true, shape = RoundedCornerShape(30.dp), enabled = !model.paused,
                         colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = Color.Black.copy(.4f), unfocusedBorderColor = Color.Transparent, focusedBorderColor = LivePink),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                         keyboardActions = KeyboardActions(onSend = { model.comment(message); message = "" }),
-                        trailingIcon = { if (message.isNotBlank()) IconButton(enabled = !model.paused, onClick = { model.comment(message); message = "" }) { Icon(StudioIcons.Send, "Send comment", tint = Color.White) } })
+                        trailingIcon = { if (message.isNotBlank()) IconButton(enabled = !model.paused, onClick = { model.comment(message); message = "" }) { Icon(StudioIcons.Send, stringResource(R.string.chat_send_action), tint = Color.White) } })
                     IconButton(onClick = { model.gift(giftCatalog.first()) }, enabled = !model.paused, modifier = Modifier.background(Color.Black.copy(.4f), CircleShape)) {
                         GiftArt(giftCatalog.first(), 35.dp, "Send rose")
                     }
@@ -162,16 +157,13 @@ internal fun LiveScreen(model: StudioModel, onEnd: () -> Unit) {
                     }
                     if (canUseCamera) IconButton(onClick = { frontCamera = !frontCamera }) { Icon(StudioIcons.Cameraswitch, "Switch camera") }
                     Spacer(Modifier.weight(1f))
-                    Text("Virtual crowd · Gifts have no cash value", color = Color.White.copy(.65f), fontSize = 9.sp)
                 }
             }
             if (wide) Surface(Modifier.width(320.dp).fillMaxHeight(), color = Color.Black.copy(.55f), shape = RoundedCornerShape(24.dp)) {
                 Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text("Live chat", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                    Text("A simulated crowd, just for you.", color = Muted, fontSize = 12.sp)
+                    Text(stringResource(R.string.chat_heading), fontSize = 24.sp, fontWeight = FontWeight.Bold)
                     HorizontalDivider(color = Border)
                     ChatFeed(state.chat, Modifier.weight(1f))
-                    Text("Practice freely. Nothing is broadcast.", color = Mint, fontSize = 11.sp)
                 }
             }
         }
@@ -278,7 +270,6 @@ private fun GiftSheet(model: StudioModel, onClose: () -> Unit) {
             Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(if (sent) "${selected.name} sent! ×${model.live.gift?.combo ?: 1}" else selected.name, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    Text("Demo values only. No cash value.", color = Color.White.copy(.6f), fontSize = 9.sp)
                 }
                 Button(onClick = { model.gift(selected); sent = true }, enabled = !model.paused, colors = ButtonDefaults.buttonColors(containerColor = LivePink, contentColor = Color.White), shape = RoundedCornerShape(24.dp)) {
                     Text(if (sent) "Combo +1" else "Send gift", fontWeight = FontWeight.Bold)

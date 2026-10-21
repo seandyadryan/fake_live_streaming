@@ -53,7 +53,10 @@ class StudioFlowTest {
         compose.onNodeWithText("Start practice live").performScrollTo()
         screenshot("05-customize")
         compose.onNodeWithText("Start practice live").performClick()
-        compose.onNodeWithText("SIMULATED").assertIsDisplayed()
+        compose.onNodeWithContentDescription("End session").assertIsDisplayed()
+        listOf("SIMULATED", "A little creativity, a lot of good vibes", "General · 10,000–100,000 viewers", "Virtual crowd · Gifts have no cash value").forEach {
+            compose.onNodeWithText(it).assertDoesNotExist()
+        }
         compose.onNodeWithText("Say something…").performClick().performTextInput("Hello from practice")
         compose.waitUntil(5_000) {
             ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.isVisible(WindowInsetsCompat.Type.ime()) == true
@@ -81,6 +84,7 @@ class StudioFlowTest {
         screenshot("02-live")
         compose.onNodeWithContentDescription("Open gifts").performClick()
         compose.onNodeWithText("Virtual gifts").assertIsDisplayed()
+        compose.onNodeWithText("Demo values only. No cash value.").assertDoesNotExist()
         screenshot("03-gifts")
         compose.onNodeWithText("Moon gem").performClick()
         compose.onNodeWithText("Send gift").performClick()
@@ -110,7 +114,7 @@ class StudioFlowTest {
         compose.onNodeWithText("Back to studio").performScrollTo().performClick()
         compose.activityRule.scenario.recreate()
         compose.onNodeWithText("Sessions", useUnmergedTree = true).performClick()
-        compose.onNodeWithText("A little creativity, a lot of good vibes").assertIsDisplayed()
+        compose.onNodeWithText("My practice room").assertIsDisplayed()
         compose.runOnIdle { assertEquals(1, model.history.size) }
         compose.onNodeWithText("About", useUnmergedTree = true).performClick()
         compose.onNodeWithText("Privacy policy").performScrollTo().performClick()
@@ -159,5 +163,33 @@ class StudioFlowTest {
             assertNull(StudioModel(context).config.photo)
         }
         input.delete()
+    }
+
+    @Test fun chatResourcesFollowPhoneLanguagesWithEnglishFallback() {
+        val context = compose.activity.application
+        fun content(tags: String) = localizedChat(context, android.os.LocaleList.forLanguageTags(tags))
+        assertEquals(ChatContent.English, content("en-US"))
+        assertEquals("Selamat datang di LIVE! 👋", content("id-ID").welcome)
+        assertEquals("¡Bienvenidos al LIVE! 👋", content("es-ES").welcome)
+        assertEquals("أهلاً بكم في البث المباشر! 👋", content("ar-SA").welcome)
+        assertEquals("LIVEへようこそ！ 👋", content("ja-JP").welcome)
+        assertEquals("歡迎來到直播間！ 👋", content("zh-TW").welcome)
+        assertEquals("J'adore cette énergie ✨", content("fr-FR").general.first())
+        assertEquals(ChatContent.English, content("zz-ZZ"))
+        assertEquals(content("id-ID"), content("zz-ZZ,id-ID,en-US"))
+        val tags = listOf("id", "ms", "es", "fr", "de", "it", "pt", "ar", "hi", "bn", "ur", "ja", "ko", "zh", "zh-Hant", "ru", "tr", "vi", "th", "fil", "nl", "pl", "uk", "fa")
+        tags.forEach { language ->
+            val translated = content(language)
+            assertNotEquals("Missing translation: $language", ChatContent.English.welcome, translated.welcome)
+            assertEquals(8, translated.general.size)
+            assertTrue(translated.general.all { it.isNotBlank() })
+        }
+        // Existing installations must not retain the retired default room title.
+        val prefs = context.getSharedPreferences("studio", 0)
+        val previousTitle = prefs.getString("title", null)
+        try {
+            prefs.edit().putString("title", "A little creativity, a lot of good vibes").commit()
+            assertEquals("", StudioModel(context).config.title)
+        } finally { prefs.edit().putString("title", previousTitle).commit() }
     }
 }

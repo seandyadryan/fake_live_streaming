@@ -24,6 +24,17 @@ class StudioModel(application: Application) : AndroidViewModel(application) {
     var latest by mutableStateOf<SessionRecord?>(null); private set
     var importingPhoto by mutableStateOf(false); private set
     var photoError by mutableStateOf<String?>(null)
+    private var chatLanguageTags: String? = null
+    private var chatContent = ChatContent.English
+
+    fun refreshChatLanguage() {
+        val locales = android.content.res.Resources.getSystem().configuration.locales
+        val tags = locales.toLanguageTags()
+        if (tags == chatLanguageTags) return
+        chatContent = localizedChat(getApplication(), locales)
+        chatLanguageTags = tags
+        live = live.withChatLanguage(chatContent)
+    }
 
     fun importPhoto(uri: Uri) {
         if (importingPhoto) return
@@ -49,10 +60,10 @@ class StudioModel(application: Application) : AndroidViewModel(application) {
             .putString("crowd", config.crowd.name).putString("scene", config.scene.name)
             .putString("topic", config.topic.name).putBoolean("gifts", config.randomGifts).putString("photo", config.photo).apply()
     }
-    fun start() { live = simulator.initial(config); paused = false; screen = "live" }
-    fun tick() { if (screen == "live" && !paused) live = simulator.step(live, config) }
+    fun start() { refreshChatLanguage(); live = simulator.initial(config, chatContent); paused = false; screen = "live" }
+    fun tick() { refreshChatLanguage(); if (screen == "live" && !paused) live = simulator.step(live, config, chatContent) }
     fun gift(gift: Gift) { if (!paused) live = simulator.sendGift(live, gift) }
-    fun comment(text: String) { if (!paused) live = simulator.comment(live, text) }
+    fun comment(text: String) { refreshChatLanguage(); if (!paused) live = simulator.comment(live, text, chatContent) }
     fun like() { if (!paused) live = live.copy(likes = live.likes + 1) }
     fun finish() {
         if (screen != "live") return
@@ -70,7 +81,7 @@ class StudioModel(application: Application) : AndroidViewModel(application) {
     }
     private fun loadConfig() = StudioConfig(
         name = prefs.getString("name", "Alex Morgan")!!,
-        title = prefs.getString("title", "A little creativity, a lot of good vibes")!!,
+        title = prefs.getString("title", "").orEmpty().takeUnless { it == "A little creativity, a lot of good vibes" }.orEmpty(),
         crowd = runCatching { Crowd.valueOf(prefs.getString("crowd", "")!!) }.getOrDefault(Crowd.BUZZING),
         scene = runCatching { Scene.valueOf(prefs.getString("scene", "")!!) }.getOrDefault(Scene.AURORA),
         topic = runCatching { Topic.valueOf(prefs.getString("topic", "")!!) }.getOrDefault(Topic.CHAT),

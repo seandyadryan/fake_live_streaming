@@ -9,6 +9,8 @@ A native Kotlin / Jetpack Compose Android app for private live-stream practice. 
 - Four bounded viewer ranges: 0–100, 100–1,000, 1,000–10,000, and 10,000–100,000.
 - Fullscreen live room with host/follow capsule, viewer count, live chat, floating hearts, and gift celebrations.
 - Eight free virtual gifts, illustrated gift grid, category filters, demo coin values, repeat combos, and random gift arrivals.
+- A clean live overlay without the old simulation badge, room-title/topic/range subtitles, or virtual-crowd footer. Practice details remain available in Studio and About.
+- Generated chat in 25 languages, selected from the phone's ordered system locales with English fallback. Existing generated messages update after a language change; user-written messages are preserved.
 - Optional CameraX front/back preview; no recording, microphone, or internet permission.
 - Pause/resume, finish confirmation, session summary, and a local journal of the last 50 sessions.
 - Offline privacy policy and a GitHub Pages policy in `docs/index.html`.
@@ -85,7 +87,7 @@ adb shell am instrument -w -e capture true \
 
 See `store/RELEASE-CHECKLIST.md`, `store/VIDEO.md`, and `store/asset-manifest.json`. The privacy policy is published from `docs/` on GitHub Pages.
 
-`store/ASSETS.md` lists the store artwork, 24 screenshots, and silent 20-second promo. Install `tools/requirements.txt` in a Python environment to regenerate artwork or video. After building the signed release and capturing screenshots, `python tools/package_release.py` creates `output/release/LiveMuse-1.1.0-PlayStore.zip`, including APK, AAB, mapping, public store materials, privacy HTML, and SHA-256 checksums. It excludes private signing credentials.
+`store/ASSETS.md` lists the store artwork, 24 screenshots, and silent 20-second promo. Install `tools/requirements.txt` in a Python environment to regenerate artwork or video. After building the signed release and capturing screenshots, `python tools/package_release.py` creates `output/release/LiveMuse-1.2.0-PlayStore.zip`, including APK, AAB, mapping, public store materials, privacy HTML, and SHA-256 checksums. It excludes private signing credentials.
 
 The app is suitable for an upfront paid listing, but store price, countries, developer-account verification, content rating, testing requirements, and final submission are completed in the owner's Play Console. A YouTube URL must point to the actual uploaded promotional video.
 

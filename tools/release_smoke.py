@@ -35,7 +35,9 @@ try:
     x1, y1, x2, y2 = map(int, re.findall(r"\d+", button.attrib["bounds"]))
     assert x2 > x1 and y2 > y1, "Start button is outside the viewport."
     adb("shell", "input", "tap", str((x1+x2)//2), str((y1+y2)//2))
-    assert "SIMULATED" in ui("live"), "Live room did not render in the production APK."
+    live = ui("live")
+    assert "End session" in live and "Open gifts" in live, "Live room did not render in the production APK."
+    assert 'text="SIMULATED"' not in live, "Retired live label was still displayed."
     assert adb("shell", "pidof", PACKAGE).strip(), "Production process exited."
     crashes = adb("logcat", "-b", "crash", "-d")
     assert "FATAL EXCEPTION" not in crashes, crashes
