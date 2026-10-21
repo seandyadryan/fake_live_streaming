@@ -120,15 +120,17 @@ internal fun LiveScreen(model: StudioModel, onEnd: () -> Unit) {
                     Text(config.title.ifBlank { "My practice room" }, modifier = Modifier.padding(top = 12.dp), maxLines = 2, fontSize = 13.sp, fontWeight = FontWeight.Medium)
                     Text("${config.topic.label} · ${config.crowd.label} viewers", color = Color.White.copy(.65f), fontSize = 10.sp)
                 }
-                Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    if (model.paused) Surface(color = Color.Black.copy(.7f), shape = RoundedCornerShape(20.dp)) {
+                BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    val celebrationSize = minOf(148.dp, (maxHeight - 55.dp).coerceAtLeast(48.dp))
+                    val hasStageSpace = maxHeight >= 110.dp
+                    if (model.paused && !compactRoom && hasStageSpace) Surface(color = Color.Black.copy(.7f), shape = RoundedCornerShape(20.dp)) {
                         Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("Take a breath.", fontSize = 23.sp, fontWeight = FontWeight.Bold)
                             Text("Your practice is paused.", fontSize = 12.sp, color = Muted)
                         }
-                    } else if (!compactRoom) {
+                    } else if (!compactRoom && !model.paused && hasStageSpace) {
                         AnimatedContent(targetState = state.gift, label = "Gift celebration") { event ->
-                            if (event != null) GiftCelebration(event)
+                            if (event != null) GiftCelebration(event, celebrationSize)
                             else if (config.photo == null && !canUseCamera) Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(StudioIcons.GraphicEq, null, tint = Color.White.copy(.65f), modifier = Modifier.size(48.dp))
                                 Text("Your moment, your stage", fontSize = 20.sp, fontWeight = FontWeight.Bold)
@@ -207,11 +209,11 @@ internal fun GiftArt(gift: Gift, size: Dp, description: String? = null) {
 }
 
 @Composable
-private fun GiftCelebration(event: GiftEvent) {
+private fun GiftCelebration(event: GiftEvent, size: Dp) {
     val scale = remember(event.id) { Animatable(.45f) }
     LaunchedEffect(event.id) { scale.animateTo(1f, spring(dampingRatio = .55f)) }
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.scale(scale.value)) {
-        GiftArt(event.gift, 148.dp)
+        GiftArt(event.gift, size)
         Text("${event.gift.name} ×${event.combo}", fontSize = 25.sp, fontWeight = FontWeight.Bold, color = Color.White)
         Text("A gift from ${event.sender}", fontSize = 11.sp, color = Color.White.copy(.8f))
     }
