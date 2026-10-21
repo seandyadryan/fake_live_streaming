@@ -17,8 +17,8 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
+
+
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -88,7 +88,7 @@ fun LiveMuseApp(model: StudioModel = viewModel()) {
         } else {
             Scaffold(containerColor = Ink, bottomBar = {
                 if (model.screen != "summary") NavigationBar(containerColor = Ink, tonalElevation = 0.dp) {
-                    listOf(Triple("studio", "Studio", Icons.Outlined.Videocam), Triple("history", "Sessions", Icons.Outlined.BarChart), Triple("about", "About", Icons.Outlined.Tune)).forEach { (route, name, icon) ->
+                    listOf(Triple("studio", "Studio", StudioIcons.Videocam), Triple("history", "Sessions", StudioIcons.BarChart), Triple("about", "About", StudioIcons.Tune)).forEach { (route, name, icon) ->
                         NavigationBarItem(selected = model.screen == route, onClick = { model.screen = route },
                             icon = { Icon(icon, null) }, label = { Text(name) },
                             colors = NavigationBarItemDefaults.colors(indicatorColor = Panel, selectedIconColor = Violet, selectedTextColor = Violet))
@@ -166,8 +166,8 @@ private fun StudioPreview(config: StudioConfig) {
                 Text("A space to be yourself.", fontSize = 23.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    MiniLabel(Icons.Outlined.Forum, "Friendly chat")
-                    MiniLabel(Icons.Outlined.Redeem, "Surprise gifts")
+                    MiniLabel(StudioIcons.Forum, "Friendly chat")
+                    MiniLabel(StudioIcons.Redeem, "Surprise gifts")
                 }
             }
         }
@@ -192,7 +192,7 @@ private fun StudioControls(model: StudioModel) {
             Text(config.name.ifBlank { "Your creator name" }, fontWeight = FontWeight.SemiBold)
             Text(config.title.ifBlank { "My practice room" }, color = Muted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        IconButton(onClick = { editing = true }) { Icon(Icons.Outlined.Edit, "Edit profile", tint = Violet) }
+        IconButton(onClick = { editing = true }) { Icon(StudioIcons.Edit, "Edit profile", tint = Violet) }
     }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         SectionLabel("01", "Choose your audience")
@@ -222,9 +222,9 @@ private fun StudioControls(model: StudioModel) {
     }
     Surface(shape = RoundedCornerShape(20.dp), color = Panel) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-            SettingRow(Icons.Outlined.Redeem, "Random gifts", "A little surprise from your virtual crowd", config.randomGifts) { model.configure(config.copy(randomGifts = it)) }
+            SettingRow(StudioIcons.Redeem, "Random gifts", "A little surprise from your virtual crowd", config.randomGifts) { model.configure(config.copy(randomGifts = it)) }
             HorizontalDivider(color = Border)
-            SettingRow(Icons.Outlined.Videocam, "Use my camera", "Preview only · never recorded", config.camera) {
+            SettingRow(StudioIcons.Videocam, "Use my camera", "Preview only · never recorded", config.camera) {
                 if (!it) model.configure(config.copy(camera = false))
                 else if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) model.configure(config.copy(camera = true))
                 else permissionNote = true
@@ -232,11 +232,11 @@ private fun StudioControls(model: StudioModel) {
         }
     }
     Button(onClick = { model.start() }, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(18.dp)) {
-        Icon(Icons.Outlined.PlayArrow, null)
+        Icon(StudioIcons.PlayArrow, null)
         Spacer(Modifier.width(8.dp))
         Text("Start practice live", fontWeight = FontWeight.Bold, fontSize = 16.sp)
         Spacer(Modifier.weight(1f))
-        Icon(Icons.Outlined.ArrowForward, null)
+        Icon(StudioIcons.ArrowForward, null)
     }
     if (editing) ProfileDialog(config, onClose = { editing = false }, onSave = { model.configure(it); editing = false })
     if (permissionNote) AlertDialog(onDismissRequest = { permissionNote = false }, title = { Text("Your camera, just for you") },
@@ -285,13 +285,13 @@ private fun LiveScreen(model: StudioModel, onEnd: () -> Unit) {
                         Text("${duration(state.seconds)}  ·  Practice room", color = Color.White.copy(.75f), fontSize = 11.sp)
                     }
                     Tag("SIMULATED", Mint)
-                    IconButton(onClick = onEnd) { Icon(Icons.Outlined.Close, "End session") }
+                    IconButton(onClick = onEnd) { Icon(StudioIcons.Close, "End session") }
                 }
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    StatPill(Icons.Outlined.Visibility, compact(state.viewers))
-                    StatPill(Icons.Outlined.FavoriteBorder, compact(state.likes))
-                    StatPill(Icons.Outlined.Redeem, "${state.gifts}")
+                    StatPill(StudioIcons.Visibility, compact(state.viewers))
+                    StatPill(StudioIcons.FavoriteBorder, compact(state.likes))
+                    StatPill(StudioIcons.Redeem, "${state.gifts}")
                 }
                 Spacer(Modifier.height(20.dp))
                 Text(config.title.ifBlank { "My practice room" }, fontSize = 15.sp, fontWeight = FontWeight.Medium, maxLines = 2)
@@ -301,7 +301,7 @@ private fun LiveScreen(model: StudioModel, onEnd: () -> Unit) {
                     val showOrb = maxHeight >= 180.dp
                     if (model.paused) Surface(color = Ink.copy(.8f), shape = RoundedCornerShape(24.dp)) {
                         Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Outlined.Pause, null, tint = Violet, modifier = Modifier.size(36.dp))
+                            Icon(StudioIcons.Pause, null, tint = Violet, modifier = Modifier.size(36.dp))
                             Text("Take a breath.", fontSize = 24.sp, fontWeight = FontWeight.Bold)
                             Text("Your practice is paused.", color = Muted)
                         }
@@ -325,16 +325,16 @@ private fun LiveScreen(model: StudioModel, onEnd: () -> Unit) {
                     OutlinedTextField(value = message, onValueChange = { message = it.take(160) }, placeholder = { Text("Say something…", fontSize = 12.sp) },
                         modifier = Modifier.weight(1f), singleLine = true, shape = RoundedCornerShape(28.dp),
                         enabled = !model.paused,
-                        trailingIcon = { IconButton(enabled = message.isNotBlank() && !model.paused, onClick = { model.comment(message); message = "" }) { Icon(Icons.Outlined.Send, "Send comment", tint = Violet) } })
-                    IconButton(onClick = { giftsOpen = true }, enabled = !model.paused, modifier = Modifier.background(Violet, CircleShape)) { Icon(Icons.Outlined.Redeem, "Open gifts", tint = Ink) }
-                    IconButton(onClick = { model.like() }, enabled = !model.paused) { Icon(Icons.Outlined.Favorite, "Send heart", tint = Coral) }
+                        trailingIcon = { IconButton(enabled = message.isNotBlank() && !model.paused, onClick = { model.comment(message); message = "" }) { Icon(StudioIcons.Send, "Send comment", tint = Violet) } })
+                    IconButton(onClick = { giftsOpen = true }, enabled = !model.paused, modifier = Modifier.background(Violet, CircleShape)) { Icon(StudioIcons.Redeem, "Open gifts", tint = Ink) }
+                    IconButton(onClick = { model.like() }, enabled = !model.paused) { Icon(StudioIcons.Favorite, "Send heart", tint = Coral) }
                 }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = { model.paused = !model.paused }) {
-                        Icon(if (model.paused) Icons.Outlined.PlayArrow else Icons.Outlined.Pause, null, modifier = Modifier.size(18.dp))
+                        Icon(if (model.paused) StudioIcons.PlayArrow else StudioIcons.Pause, null, modifier = Modifier.size(18.dp))
                         Text(if (model.paused) "Resume" else "Pause", fontSize = 12.sp)
                     }
-                    if (canUseCamera) IconButton(onClick = { frontCamera = !frontCamera }) { Icon(Icons.Outlined.Cameraswitch, "Switch camera") }
+                    if (canUseCamera) IconButton(onClick = { frontCamera = !frontCamera }) { Icon(StudioIcons.Cameraswitch, "Switch camera") }
                     Spacer(Modifier.weight(1f))
                     Text("Virtual audience · No real money", color = Muted, fontSize = 10.sp)
                 }
@@ -361,7 +361,7 @@ private fun PulseOrb() {
     val alpha by transition.animateFloat(.3f, .7f, infiniteRepeatable(tween(2400), RepeatMode.Reverse), label = "Glow opacity")
     Box(Modifier.size(118.dp).background(Violet.copy(alpha = alpha * .14f), CircleShape).border(1.dp, Violet.copy(alpha = alpha), CircleShape), contentAlignment = Alignment.Center) {
         Box(Modifier.size(84.dp).background(Violet.copy(alpha = .18f), CircleShape), contentAlignment = Alignment.Center) {
-            Icon(Icons.Outlined.GraphicEq, null, tint = Color.White, modifier = Modifier.size(40.dp))
+            Icon(StudioIcons.GraphicEq, null, tint = Color.White, modifier = Modifier.size(40.dp))
         }
     }
 }
@@ -401,7 +401,8 @@ private fun GiftBanner(event: GiftEvent) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GiftSheet(onClose: () -> Unit, onGift: (Gift) -> Unit) {
-    ModalBottomSheet(onDismissRequest = onClose, containerColor = Panel) {
+    ModalBottomSheet(onDismissRequest = onClose, containerColor = Panel,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().align(Alignment.CenterHorizontally).padding(horizontal = 24.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("A little extra magic.", fontSize = 28.sp, fontWeight = FontWeight.Bold)
             Text("Trigger a gift from your virtual audience.", color = Muted, fontSize = 14.sp)
@@ -438,7 +439,7 @@ private fun HistoryScreen(model: StudioModel) {
         if (model.history.isEmpty()) {
             Surface(shape = RoundedCornerShape(24.dp), color = Panel) {
                 Column(Modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Outlined.AutoAwesome, null, tint = Violet, modifier = Modifier.size(42.dp))
+                    Icon(StudioIcons.AutoAwesome, null, tint = Violet, modifier = Modifier.size(42.dp))
                     Spacer(Modifier.height(16.dp))
                     Text("Your first moment is waiting.", fontWeight = FontWeight.Bold)
                     Text("Finish a practice live to see it here.", color = Muted, fontSize = 13.sp)
@@ -497,9 +498,9 @@ private fun AboutScreen(model: StudioModel) {
         BrandHeader()
         Text("Your space.\nYour peace of mind.", fontSize = 34.sp, lineHeight = 39.sp, fontWeight = FontWeight.Bold, letterSpacing = (-1).sp)
         Text("A creative playground for your next big idea.", color = Muted)
-        InfoCard(Icons.Outlined.WifiOff, "Offline by design", "No accounts, ads, trackers, or internet permission. Your practice stays on your device.")
-        InfoCard(Icons.Outlined.Shield, "A simulation, always", "Viewers, chat, likes, and gifts are generated locally. Nothing is broadcast. Gifts have no monetary value.")
-        InfoCard(Icons.Outlined.Videocam, "Camera on your terms", "Camera access is optional and used only for preview. LiveMuse never records video or audio.")
+        InfoCard(StudioIcons.WifiOff, "Offline by design", "No accounts, ads, trackers, or internet permission. Your practice stays on your device.")
+        InfoCard(StudioIcons.Shield, "A simulation, always", "Viewers, chat, likes, and gifts are generated locally. Nothing is broadcast. Gifts have no monetary value.")
+        InfoCard(StudioIcons.Videocam, "Camera on your terms", "Camera access is optional and used only for preview. LiveMuse never records video or audio.")
         OutlinedButton(onClick = { privacy = true }, modifier = Modifier.fillMaxWidth()) { Text("Privacy policy") }
         OutlinedButton(onClick = {
             val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:seandyadryan2@gmail.com")).putExtra(Intent.EXTRA_SUBJECT, "LiveMuse support")
@@ -574,7 +575,7 @@ private fun SettingRow(icon: ImageVector, title: String, subtitle: String, check
 @Composable
 private fun OfflineNote() {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Icon(Icons.Outlined.Shield, null, tint = Mint, modifier = Modifier.size(16.dp))
+        Icon(StudioIcons.Shield, null, tint = Mint, modifier = Modifier.size(16.dp))
         Text("100% practice. No real broadcast.\nViewers, comments, and gifts are simulated.", color = Muted, fontSize = 11.sp, lineHeight = 16.sp)
     }
 }
