@@ -34,13 +34,22 @@ class StudioFlowTest {
             model.screen = "studio"
         }
         screenshot("01-studio")
-        compose.onNodeWithContentDescription("Edit profile").performClick()
+        compose.onNodeWithContentDescription("Edit profile").performScrollTo().performClick()
         compose.onNodeWithText("Creator name").performTextReplacement("Alex Morgan")
         compose.onNodeWithText("Save profile").performClick()
         compose.onNodeWithContentDescription("Use my camera").performScrollTo().performClick()
         compose.onNodeWithText("Your camera, just for you").assertIsDisplayed()
         compose.onNodeWithText("Use background").performClick()
         compose.runOnIdle { assertFalse(model.config.camera) }
+        Crowd.entries.forEach { crowd ->
+            compose.onNodeWithText(crowd.label).performScrollTo().performClick()
+            compose.runOnIdle {
+                assertEquals(crowd, model.config.crowd)
+                assertEquals(crowd, StudioModel(compose.activity.application).config.crowd)
+            }
+        }
+        compose.onNodeWithText("Your live photo").performScrollTo()
+        screenshot("06-audience")
         compose.onNodeWithText("Start practice live").performScrollTo()
         screenshot("05-customize")
         compose.onNodeWithText("Start practice live").performClick()
@@ -113,11 +122,15 @@ class StudioFlowTest {
 
     @Test fun photoImportPersistsNormalizesAndRemovesPrivateCopy() {
         val context = compose.activity.application
-        val input = File(context.cacheDir, "source-photo.png")
+        val input = File(context.cacheDir, "source-photo.jpg")
         val bitmap = Bitmap.createBitmap(3000, 1000, Bitmap.Config.ARGB_8888)
         bitmap.eraseColor(android.graphics.Color.MAGENTA)
-        input.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        input.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it) }
         bitmap.recycle()
+        androidx.exifinterface.media.ExifInterface(input).apply {
+            setAttribute(androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION, "6")
+            saveAttributes()
+        }
         compose.runOnIdle { model.importPhoto(android.net.Uri.fromFile(input)) }
         compose.waitUntil(15_000) { !model.importingPhoto }
         lateinit var copy: File
@@ -127,6 +140,8 @@ class StudioFlowTest {
             assertTrue(copy.exists())
             val decoded = android.graphics.BitmapFactory.decodeFile(copy.path)
             assertTrue(maxOf(decoded.width, decoded.height) <= 2048)
+            assertEquals(500, decoded.width)
+            assertEquals(1500, decoded.height)
             decoded.recycle()
             assertEquals(model.config.photo, StudioModel(context).config.photo)
         }

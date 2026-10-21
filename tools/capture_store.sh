@@ -13,7 +13,10 @@ for spec in phone:1080x1920:420 tablet-7:1440x2560:280 tablet-10:1440x2560:200 d
   adb shell wm density "$density"
   adb shell am force-stop "$package"
   adb shell am instrument -w -e capture true "$package.test/androidx.test.runner.AndroidJUnitRunner" | tee "output/device-tests/$name.txt"
-  grep -q 'OK (2 tests)' "output/device-tests/$name.txt"
+  adb exec-out screencap -p > "output/device-tests/$name-final.png"
+  adb shell uiautomator dump /sdcard/livemuse-ui.xml >/dev/null
+  adb pull /sdcard/livemuse-ui.xml "output/device-tests/$name-final.xml"
   mkdir -p "store/screenshots/$name"
   adb pull "/sdcard/Android/data/$package/files/screenshots/." "store/screenshots/$name/"
+  grep -q 'OK (2 tests)' "output/device-tests/$name.txt"
 done

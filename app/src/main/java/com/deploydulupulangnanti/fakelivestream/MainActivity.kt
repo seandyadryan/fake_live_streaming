@@ -204,7 +204,7 @@ private fun StudioControls(model: StudioModel) {
                 OutlinedButton(enabled = !model.importingPhoto, onClick = {
                     photoPicker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 }) { Text(if (model.importingPhoto) "Preparing photo…" else if (config.photo == null) "Choose photo" else "Change photo") }
-                if (config.photo != null) TextButton(onClick = model::removePhoto) { Text("Remove photo") }
+                if (config.photo != null) TextButton(enabled = !model.importingPhoto, onClick = model::removePhoto) { Text("Remove photo") }
             }
         }
     }
