@@ -1,11 +1,11 @@
 {
   "short_description_characters": 78,
-  "full_description_characters": 2332,
+  "full_description_characters": 2770,
   "screenshot_counts": {
-    "phone": 5,
-    "desktop": 5,
-    "tablet-7": 5,
-    "tablet-10": 5
+    "phone": 6,
+    "desktop": 6,
+    "tablet-7": 6,
+    "tablet-10": 6
   },
   "assets": [
     {
@@ -26,140 +26,168 @@
       "file": "screenshots/desktop/01-studio.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 209090,
+      "bytes": 210407,
       "mode": "RGB"
     },
     {
       "file": "screenshots/desktop/02-live.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 1213733,
+      "bytes": 1130434,
       "mode": "RGB"
     },
     {
       "file": "screenshots/desktop/03-gifts.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 937667,
+      "bytes": 902557,
       "mode": "RGB"
     },
     {
       "file": "screenshots/desktop/04-summary.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 58746,
+      "bytes": 59920,
       "mode": "RGB"
     },
     {
       "file": "screenshots/desktop/05-customize.png",
       "width": 1920,
       "height": 1080,
-      "bytes": 209090,
+      "bytes": 209643,
+      "mode": "RGB"
+    },
+    {
+      "file": "screenshots/desktop/06-audience.png",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 210677,
       "mode": "RGB"
     },
     {
       "file": "screenshots/phone/01-studio.png",
       "width": 1080,
       "height": 1920,
-      "bytes": 514559,
+      "bytes": 505596,
       "mode": "RGB"
     },
     {
       "file": "screenshots/phone/02-live.png",
       "width": 1080,
       "height": 1920,
-      "bytes": 1554472,
+      "bytes": 1636711,
       "mode": "RGB"
     },
     {
       "file": "screenshots/phone/03-gifts.png",
       "width": 1080,
       "height": 1920,
-      "bytes": 612736,
+      "bytes": 745231,
       "mode": "RGB"
     },
     {
       "file": "screenshots/phone/04-summary.png",
       "width": 1080,
       "height": 1920,
-      "bytes": 85292,
+      "bytes": 89397,
       "mode": "RGB"
     },
     {
       "file": "screenshots/phone/05-customize.png",
       "width": 1080,
       "height": 1920,
-      "bytes": 160341,
+      "bytes": 146111,
+      "mode": "RGB"
+    },
+    {
+      "file": "screenshots/phone/06-audience.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 156871,
       "mode": "RGB"
     },
     {
       "file": "screenshots/tablet-10/01-studio.png",
       "width": 1440,
       "height": 2560,
-      "bytes": 275181,
+      "bytes": 283077,
       "mode": "RGB"
     },
     {
       "file": "screenshots/tablet-10/02-live.png",
       "width": 1440,
       "height": 2560,
-      "bytes": 2273337,
+      "bytes": 2299235,
       "mode": "RGB"
     },
     {
       "file": "screenshots/tablet-10/03-gifts.png",
       "width": 1440,
       "height": 2560,
-      "bytes": 1791136,
+      "bytes": 1871282,
       "mode": "RGB"
     },
     {
       "file": "screenshots/tablet-10/04-summary.png",
       "width": 1440,
       "height": 2560,
-      "bytes": 67897,
+      "bytes": 68993,
       "mode": "RGB"
     },
     {
       "file": "screenshots/tablet-10/05-customize.png",
       "width": 1440,
       "height": 2560,
-      "bytes": 275181,
+      "bytes": 283259,
+      "mode": "RGB"
+    },
+    {
+      "file": "screenshots/tablet-10/06-audience.png",
+      "width": 1440,
+      "height": 2560,
+      "bytes": 283259,
       "mode": "RGB"
     },
     {
       "file": "screenshots/tablet-7/01-studio.png",
       "width": 1440,
       "height": 2560,
-      "bytes": 377869,
+      "bytes": 387984,
       "mode": "RGB"
     },
     {
       "file": "screenshots/tablet-7/02-live.png",
       "width": 1440,
       "height": 2560,
-      "bytes": 2179442,
+      "bytes": 2282053,
       "mode": "RGB"
     },
     {
       "file": "screenshots/tablet-7/03-gifts.png",
       "width": 1440,
       "height": 2560,
-      "bytes": 1629667,
+      "bytes": 1757654,
       "mode": "RGB"
     },
     {
       "file": "screenshots/tablet-7/04-summary.png",
       "width": 1440,
       "height": 2560,
-      "bytes": 89877,
+      "bytes": 90441,
       "mode": "RGB"
     },
     {
       "file": "screenshots/tablet-7/05-customize.png",
       "width": 1440,
       "height": 2560,
-      "bytes": 377869,
+      "bytes": 388243,
+      "mode": "RGB"
+    },
+    {
+      "file": "screenshots/tablet-7/06-audience.png",
+      "width": 1440,
+      "height": 2560,
+      "bytes": 388243,
       "mode": "RGB"
     }
   ]

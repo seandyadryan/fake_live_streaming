@@ -37,7 +37,7 @@ segments = []
 for index in range(len(slides)):
     output = WORK / f"segment-{index}.mp4"
     subprocess.run([ffmpeg, "-y", "-loop", "1", "-i", str(WORK / f"slide-{index}.png"),
-                    "-t", "5", "-r", "30", "-c:v", "libx264", "-preset", "medium",
+                    "-t", "5", "-r", "30", "-c:v", "libx264", "-threads", "2", "-preset", "medium",
                     "-pix_fmt", "yuv420p", "-vf", "fade=t=in:st=0:d=0.3,fade=t=out:st=4.7:d=0.3",
                     "-an", str(output)], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     segments.append(output)
