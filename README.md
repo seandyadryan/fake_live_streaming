@@ -74,7 +74,7 @@ The workflows build artifacts; they do not publish to Google Play. Increment ver
 
 ## Screenshots
 
-`StudioFlowTest` exercises profile editing, all four viewer choices, practice, gifts and combos, pause, summary, recreation, history persistence, privacy, and deletion. A second flow verifies image import, EXIF rotation, size limits, persistence, invalid-image handling, and removal. With instrumentation argument `capture=true` it saves six actual UI screenshots under the app's external files `screenshots` directory.
+`StudioFlowTest` exercises profile editing, all four viewer choices, practice, gifts and combos, pause, summary, recreation, history persistence, privacy, and deletion. A second flow verifies image import, EXIF rotation, size limits, persistence, invalid-image handling, and removal. A third verifies all 25 native chat translations, language preference fallback, and migration of the retired default title. With instrumentation argument `capture=true` it saves six actual UI screenshots under the app's external files `screenshots` directory.
 
 ```sh
 adb shell am instrument -w -e capture true \

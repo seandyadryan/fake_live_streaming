@@ -44,6 +44,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures { compose = true; buildConfig = true }
+    // Keep every chat language available offline after a phone-language change.
+    bundle { language { enableSplit = false } }
     testOptions { animationsDisabled = true }
 }
 

@@ -2,6 +2,8 @@
 
 LiveMuse follows the phone's ordered system language list. Android selects the first matching bundled translation, with English as the default when no supported language matches. No internet or translation service is used.
 
+Language splitting is disabled for the Play Store App Bundle so all chat translations remain installed and usable offline after the phone language changes.
+
 Supported chat languages: English, Indonesian, Malay, Spanish, French, German, Italian, Portuguese, Arabic, Hindi, Bengali, Urdu, Japanese, Korean, Simplified Chinese, Traditional Chinese, Russian, Turkish, Vietnamese, Thai, Filipino, Dutch, Polish, Ukrainian, and Persian.
 
 Localized content includes the welcome, eight general comment templates, topic-specific prompts, the self label, comment-input hint, send accessibility label, and chat heading. User messages and creator names are never translated. Generated lines store their template identity so they can be re-rendered after a system-language change, including while a session is paused.
