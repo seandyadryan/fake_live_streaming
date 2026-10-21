@@ -24,9 +24,14 @@ try:
     print(adb("shell", "am", "start", "-W", "-n", PACKAGE + "/.MainActivity"))
     studio = ui("studio")
     assert "LiveMuse" in studio, "Studio did not render in the production APK."
-    adb("shell", "input", "swipe", "500", "1500", "500", "500", "350")
-    options = ET.fromstring(ui("options"))
-    button = next(node for node in options.iter("node") if node.get("text") == "Start practice live")
+    button = None
+    for attempt in range(6):
+        options = ET.fromstring(ui(f"options-{attempt}"))
+        button = next((node for node in options.iter("node") if node.get("text") == "Start practice live"), None)
+        if button is not None:
+            break
+        adb("shell", "input", "swipe", "500", "1500", "500", "450", "350")
+    assert button is not None, "Start button was not found after scrolling the production UI."
     x1, y1, x2, y2 = map(int, re.findall(r"\d+", button.attrib["bounds"]))
     assert x2 > x1 and y2 > y1, "Start button is outside the viewport."
     adb("shell", "input", "tap", str((x1+x2)//2), str((y1+y2)//2))

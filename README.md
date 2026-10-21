@@ -66,6 +66,8 @@ PR checks do not access release signing. Signed release artifacts are produced o
 
 The workflows build artifacts; they do not publish to Google Play. Increment versionCode and versionName for each store update.
 
+`Signed release smoke test` accepts a successful Android build run ID, downloads its actual signed and minified APK, and verifies that Studio and the live room launch on an API 36 emulator. It requires no signing secrets because it tests the already-signed artifact.
+
 ## Screenshots
 
 `StudioFlowTest` exercises profile editing, practice, gifts, pause, summary, recreation, history persistence, privacy, and deletion. With instrumentation argument `capture=true` it saves five actual UI screenshots under the app's external files `screenshots` directory.
@@ -80,6 +82,8 @@ adb shell am instrument -w -e capture true \
 ## Store publication
 
 See `store/RELEASE-CHECKLIST.md`, `store/VIDEO.md`, and `store/asset-manifest.json`. The privacy policy is published from `docs/` on GitHub Pages.
+
+`store/ASSETS.md` lists the store artwork, 20 screenshots, and silent 20-second promo. Install `tools/requirements.txt` in a Python environment to regenerate artwork or video. After building the signed release and capturing screenshots, `python tools/package_release.py` creates `output/release/LiveMuse-1.0.0-PlayStore.zip`, including APK, AAB, mapping, public store materials, privacy HTML, and SHA-256 checksums. It excludes private signing credentials.
 
 The app is suitable for an upfront paid listing, but store price, countries, developer-account verification, content rating, testing requirements, and final submission are completed in the owner's Play Console. A YouTube URL must point to the actual uploaded promotional video.
 

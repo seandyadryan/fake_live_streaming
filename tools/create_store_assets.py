@@ -77,7 +77,13 @@ def validate():
     full = (STORE / "full-description.txt").read_text(encoding="utf-8").strip()
     assert len(short) <= 80
     assert len(full) <= 4000
-    report = {"short_description_characters": len(short), "full_description_characters": len(full), "assets": manifest}
+    counts = {group: len(list((STORE / "screenshots" / group).glob("*.png")))
+              for group in ("phone", "desktop", "tablet-7", "tablet-10")}
+    if any(counts.values()):
+        assert 2 <= counts["phone"] <= 8
+        assert 4 <= counts["desktop"] <= 8
+        assert 1 <= counts["tablet-7"] <= 8 and 1 <= counts["tablet-10"] <= 8
+    report = {"short_description_characters": len(short), "full_description_characters": len(full), "screenshot_counts": counts, "assets": manifest}
     (STORE / "asset-manifest.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(f"Validated {len(manifest)} PNG assets. Description lengths: {len(short)} / {len(full)}.")
 

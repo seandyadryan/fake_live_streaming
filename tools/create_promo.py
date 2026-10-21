@@ -1,11 +1,14 @@
 """Create a silent 1080p promo from actual app screenshots, without mocked UI."""
 from pathlib import Path
 import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "output/python-deps"))
 import imageio_ffmpeg
 from PIL import Image, ImageDraw
 from create_store_assets import font, INK, VIOLET, MINT
 
-ROOT = Path(__file__).resolve().parents[1]
 WORK = ROOT / "output" / "promo-frames"
 DEST = ROOT / "store" / "promo"
 WORK.mkdir(parents=True, exist_ok=True)
