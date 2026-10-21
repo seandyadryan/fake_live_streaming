@@ -1,34 +1,35 @@
 # Release validation — October 21, 2026
 
-Application source: `fed2851` (subsequent delivery commits contain assets and documentation).
+Version: `1.2.0` (versionCode 3). Package: `com.deploydulupulangnanti.fakelivestream`.
+Minimum API: 26. Target and compile API: 36.
+
+Android/chat implementation: `351df83`. App Bundle language-delivery configuration: `f03c029`. Subsequent delivery commits contain screenshots, promo, packaging checks and documentation.
 
 | Check | Result | Evidence |
 | --- | --- | --- |
-| Five unit tests, lint, debug build, signed APK/AAB | PASS | [Android build](https://github.com/seandyadryan/fake_live_streaming/actions/runs/39541927303) |
-| Two instrumented flows on four viewports | PASS | [Device tests](https://github.com/seandyadryan/fake_live_streaming/actions/runs/39541951265) |
-| Actual signed, minified APK installation, Studio and live startup | PASS | [Production smoke test](https://github.com/seandyadryan/fake_live_streaming/actions/runs/39542527892) |
-| APK/AAB signatures | PASS | apksigner verification and jarsigner verification; original upload certificate |
-| Native ELF and APK ZIP alignment | PASS | Six 64-bit libraries aligned to at least 16 KB; zipalign check passed |
+| Six unit tests, lint, debug build and signed APK/AAB | PASS | [Android build](https://github.com/seandyadryan/fake_live_streaming/actions/runs/39547017330) |
+| Three instrumented flows on four viewports | PASS | [Device tests](https://github.com/seandyadryan/fake_live_streaming/actions/runs/39546437364) |
+| Actual signed, minified APK installation, Studio and live startup | PASS | [Production smoke test](https://github.com/seandyadryan/fake_live_streaming/actions/runs/39547541488) |
+| APK/AAB signatures | PASS | apksigner and jarsigner verification; original upload certificate |
+| Native ELF and APK ZIP alignment | PASS | Six 64-bit libraries aligned to at least 16 KB; zipalign passed |
+| Offline language delivery in AAB | PASS | BundleConfig.pb: LANGUAGE split dimension has negate=true |
 | Store image dimensions and file limits | PASS | 26 PNGs, including 24 screenshots; asset-manifest.json |
-| English description limits | PASS | 78 / 80 and 2,770 / 4,000 characters |
+| English description limits | PASS | 78 / 80 and 3,023 / 4,000 characters |
 | Promotional video | PASS | H.264, 1920 × 1080, 30 fps, 20 seconds, silent; full decode checked |
 
-Package: `com.deploydulupulangnanti.fakelivestream`.
-Version: `1.1.0` (versionCode 2). Minimum API: 26. Target and compile API: 36.
+The six unit tests cover 100,000 simulated seconds for each viewer range, bounded chat memory, automatic/manual gifts, combos, comment limits, audience-dependent chat rates, and changing the language of generated messages while preserving user-written text and translating the self label.
 
-The unit tests cover 100,000 simulated seconds for each of four viewer ranges, bounded chat memory, automatic/manual gifts, combo growth/reset, comment length and whitespace, and audience-dependent chat rate. Viewer counts and peaks remain inside each selected inclusive range.
+API 36 x86_64 device tests cover the full practice flow, software-keyboard input, viewer preferences, gifts and combos, pause/resume, history, privacy and deletion. They also assert that the retired live badge/title/topic/range/footer and gift-sheet cash-value caption are absent. Six actual screenshots are captured in each of four viewports.
 
-API 36 x86_64 device automation covers all four viewer choices and their saved preferences, profile editing, optional-camera explanation cancellation, live startup, typing and sending a comment with the software keyboard visible, verifying the Send button stays above the keyboard, gift selection and combo, pause/resume, finish confirmation, summaries, activity recreation, stored history, privacy, and history deletion. Six actual screenshots are captured per viewport.
+The photo test verifies EXIF rotation, downsampling, persisted selection, rejection of invalid data without losing the previous image, and removal of the private copy.
 
-A separate photo flow imports a 3,000 × 1,000 JPEG tagged with 90-degree EXIF orientation, verifies its private normalized copy is 500 × 1,500, reloads the saved selection, rejects invalid image data without replacing the previous copy, and verifies removal deletes the file and saved reference.
+The localization test resolves all 25 bundled language variants using Android resources, verifies exact Indonesian/Spanish/Arabic/Japanese/Traditional Chinese/French text, English fallback for an unsupported locale, ordered language-preference fallback, and migration of the retired default room title.
 
-AndroidX ExifInterface is used for orientation parsing. Explicit backup and device-transfer exclusions cover private files and preferences. References: [AndroidX ExifInterface](https://developer.android.com/jetpack/androidx/releases/exifinterface), [Android backup configuration](https://developer.android.com/identity/data/autobackup).
+All chat language resources ship together for offline phone-language changes. The packaging validator reads the delivered AAB's BundleConfig.pb, following [Google's bundletool schema](https://github.com/google/bundletool/blob/master/src/main/proto/config.proto). As a negative control, the validator rejected the prior 1.1.0 bundle that allowed language splitting.
 
-Production smoke testing installs the CI-signed, R8-minified APK and verifies Studio and the live room render while the process remains alive without a fatal crash.
+Production smoke testing installs the actual CI-signed R8-minified APK and confirms Studio and live render, the retired badge is absent, and the process stays alive without a fatal crash. The final manifest has camera access and an app-defined internal receiver permission; no internet, microphone or shared-storage permission.
 
-Signing certificate subject: `CN=PT Deploy Dulu Pulang Nanti, O=PT Deploy Dulu Pulang Nanti, C=ID`.
-Certificate SHA-256: `cf344f01ac9a59fdcb6efca56cc5190c25da7d54faa0de977d716b1279277cca`.
+Signing certificate: `CN=PT Deploy Dulu Pulang Nanti, O=PT Deploy Dulu Pulang Nanti, C=ID`.
+SHA-256: `cf344f01ac9a59fdcb6efca56cc5190c25da7d54faa0de977d716b1279277cca`.
 
-Delivery packaging checks APK/AAB signatures, native alignment, image limits, promo decoding and archive checksums. The private upload keystore and passwords are excluded from Git and the ZIP.
-
-Physical camera hardware, manufacturer-specific behavior, and Play Console account requirements remain device/account checks before production publication. No Play Store submission or YouTube upload is performed.
+The delivery ZIP includes binary checksums and excludes the private keystore and passwords. Physical camera behavior and Play Console account requirements remain device/account checks before production publication. No Play Store submission or YouTube upload is performed.

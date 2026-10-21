@@ -15,7 +15,7 @@ WORK.mkdir(parents=True, exist_ok=True)
 DEST.mkdir(parents=True, exist_ok=True)
 slides = [
     ("01-studio.png", "Your stage.\nYour moment.", "A private space to practice your live vibe."),
-    ("02-live.png", "Find your flow.", "A virtual crowd. Friendly chat. Zero pressure."),
+    ("02-live.png", "Find your flow.", "Chat in your phone's language. All offline."),
     ("03-gifts.png", "A little extra\nmagic.", "Surprise gifts with no real-money value."),
     ("04-summary.png", "Look at you go.", "Save your progress. Build your confidence.")
 ]

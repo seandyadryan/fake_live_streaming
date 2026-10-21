@@ -3,6 +3,7 @@ from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 import hashlib
 import json
+from verify_bundle_languages import assert_languages_installed
 
 ROOT = Path(__file__).resolve().parents[1]
 DEST = ROOT / "output/release"
@@ -15,6 +16,7 @@ if mapping.is_file():
 for path in binaries:
     if not path.is_file():
         raise SystemExit(f"Missing release artifact: {path}")
+assert_languages_installed(binaries[0])
 materials = sorted(p for p in (ROOT / "store").rglob("*") if p.is_file())
 screenshots = list((ROOT / "store/screenshots").rglob("*.png"))
 assert len(screenshots) >= 20, "Capture five screenshots in each device group before packaging."
