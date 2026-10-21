@@ -16,6 +16,7 @@ try {
     Adb shell settings put global window_animation_scale 0
     Adb shell settings put global transition_animation_scale 0
     Adb shell settings put global animator_duration_scale 0
+    Adb shell settings put secure show_ime_with_hard_keyboard 1
     $viewports = @(
         @{ name='phone'; size='1080x1920'; density='420' },
         @{ name='tablet-7'; size='1440x2560'; density='280' },

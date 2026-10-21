@@ -5,6 +5,7 @@ mkdir -p output/device-tests
 adb shell settings put global window_animation_scale 0
 adb shell settings put global transition_animation_scale 0
 adb shell settings put global animator_duration_scale 0
+adb shell settings put secure show_ime_with_hard_keyboard 1
 trap 'adb shell wm size reset; adb shell wm density reset' EXIT
 for spec in phone:1080x1920:420 tablet-7:1440x2560:280 tablet-10:1440x2560:200 desktop:1920x1080:160; do
   IFS=: read -r name size density <<< "$spec"

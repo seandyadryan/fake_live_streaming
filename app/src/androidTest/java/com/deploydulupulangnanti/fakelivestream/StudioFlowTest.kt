@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.lifecycle.ViewModelProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.*
 import org.junit.Rule
@@ -43,6 +45,26 @@ class StudioFlowTest {
         screenshot("05-customize")
         compose.onNodeWithText("Start practice live").performClick()
         compose.onNodeWithText("SIMULATED").assertIsDisplayed()
+        compose.onNodeWithText("Say something…").performClick().performTextInput("Hello from practice")
+        compose.waitUntil(5_000) {
+            ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.isVisible(WindowInsetsCompat.Type.ime()) == true
+        }
+        val send = compose.onNodeWithContentDescription("Send comment").assertIsDisplayed()
+        val sendBottom = send.fetchSemanticsNode().boundsInWindow.bottom
+        compose.runOnIdle {
+            val decor = compose.activity.window.decorView
+            val keyboard = ViewCompat.getRootWindowInsets(decor)!!.getInsets(WindowInsetsCompat.Type.ime()).bottom
+            assertTrue("Send button must remain above the keyboard", sendBottom <= decor.height - keyboard + 1)
+        }
+        send.performClick()
+        compose.onNodeWithText("Hello from practice").assertIsDisplayed()
+        compose.runOnIdle {
+            compose.activity.getSystemService(android.view.inputmethod.InputMethodManager::class.java)
+                ?.hideSoftInputFromWindow(compose.activity.window.decorView.windowToken, 0)
+        }
+        compose.waitUntil(5_000) {
+            ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.isVisible(WindowInsetsCompat.Type.ime()) != true
+        }
         compose.runOnIdle {
             repeat(32) { model.tick() }
             model.gift(giftCatalog.first())

@@ -18,6 +18,8 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 
 
 import androidx.compose.material3.*
@@ -32,10 +34,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -275,7 +279,8 @@ private fun LiveScreen(model: StudioModel, onEnd: () -> Unit) {
     val context = LocalContext.current
     val canUseCamera = config.camera && ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val wide = maxWidth >= 760.dp
+        val compactRoom = maxHeight < 560.dp || WindowInsets.ime.getBottom(LocalDensity.current) > 0
+        val wide = maxWidth >= 760.dp && !compactRoom
         Backdrop(config.scene)
         if (canUseCamera) CameraPreview(frontCamera, Modifier.fillMaxSize())
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Ink.copy(alpha = .65f), Color.Transparent, Ink.copy(alpha = .95f)))))
@@ -291,6 +296,7 @@ private fun LiveScreen(model: StudioModel, onEnd: () -> Unit) {
                     Tag("SIMULATED", Mint)
                     IconButton(onClick = onEnd) { Icon(StudioIcons.Close, "End session") }
                 }
+                if (!compactRoom) {
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     StatPill(StudioIcons.Visibility, compact(state.viewers))
@@ -301,15 +307,16 @@ private fun LiveScreen(model: StudioModel, onEnd: () -> Unit) {
                 Text(config.title.ifBlank { "My practice room" }, fontSize = 15.sp, fontWeight = FontWeight.Medium, maxLines = 2)
                 Spacer(Modifier.height(6.dp))
                 Text("${config.topic.label}  ·  ${config.crowd.label} audience", color = Color.White.copy(.65f), fontSize = 11.sp)
+                } else Spacer(Modifier.height(8.dp))
                 BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                     val showOrb = maxHeight >= 180.dp
-                    if (model.paused) Surface(color = Ink.copy(.8f), shape = RoundedCornerShape(24.dp)) {
+                    if (model.paused && !compactRoom) Surface(color = Ink.copy(.8f), shape = RoundedCornerShape(24.dp)) {
                         Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(StudioIcons.Pause, null, tint = Violet, modifier = Modifier.size(36.dp))
                             Text("Take a breath.", fontSize = 24.sp, fontWeight = FontWeight.Bold)
                             Text("Your practice is paused.", color = Muted)
                         }
-                    } else if (!canUseCamera) {
+                    } else if (!canUseCamera && !compactRoom) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             if (showOrb) {
                                 PulseOrb()
@@ -320,15 +327,17 @@ private fun LiveScreen(model: StudioModel, onEnd: () -> Unit) {
                         }
                     }
                 }
-                AnimatedContent(targetState = state.gift, label = "Gift arrival") { event ->
+                AnimatedContent(targetState = if (compactRoom) null else state.gift, label = "Gift arrival") { event ->
                     if (event != null) GiftBanner(event) else Spacer(Modifier.height(4.dp))
                 }
-                if (!wide) ChatFeed(state.chat.takeLast(3), Modifier.fillMaxWidth().heightIn(max = 175.dp))
+                if (!wide) ChatFeed(state.chat.takeLast(if (compactRoom) 2 else 3), Modifier.fillMaxWidth().heightIn(max = if (compactRoom) 100.dp else 175.dp))
                 Spacer(Modifier.height(10.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     OutlinedTextField(value = message, onValueChange = { message = it.take(160) }, placeholder = { Text("Say something…", fontSize = 12.sp) },
                         modifier = Modifier.weight(1f), singleLine = true, shape = RoundedCornerShape(28.dp),
                         enabled = !model.paused,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                        keyboardActions = KeyboardActions(onSend = { model.comment(message); message = "" }),
                         trailingIcon = { IconButton(enabled = message.isNotBlank() && !model.paused, onClick = { model.comment(message); message = "" }) { Icon(StudioIcons.Send, "Send comment", tint = Violet) } })
                     IconButton(onClick = { giftsOpen = true }, enabled = !model.paused, modifier = Modifier.background(Violet, CircleShape)) { Icon(StudioIcons.Redeem, "Open gifts", tint = Ink) }
                     IconButton(onClick = { model.like() }, enabled = !model.paused) { Icon(StudioIcons.Favorite, "Send heart", tint = Coral) }
