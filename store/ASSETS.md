@@ -12,7 +12,7 @@ All copy and artwork use English. Screenshots show the actual native Android app
 | 10-inch tablet screenshots | `screenshots/tablet-10/` | 1440 × 2560 | 5 |
 | Silent promotional video | `promo/livemuse-promo.mp4` | 1920 × 1080, 20 seconds | 1 |
 
-Suggested screenshot upload order: `01-studio`, `05-customize`, `02-live`, `03-gifts`, `04-summary`.
+Suggested phone upload order: `01-studio`, `05-customize`, `02-live`, `03-gifts`, `04-summary`. For larger devices, use `01-studio`, `02-live`, `03-gifts`, and `04-summary`; the Studio view already includes its controls.
 
 Desktop assets show the Android app in a large landscape viewport. The project does not include a separate Windows or macOS application.
 
@@ -21,3 +21,5 @@ Desktop assets show the Android app in a large landscape viewport. The project d
 The short description is 78 characters; the full description is 2,332 characters. Use the adjacent plain-text files for the store fields.
 
 The owner will upload the MP4 to YouTube and place the resulting public or unlisted URL in Play Console. See `VIDEO.md` for upload settings.
+
+See [ART-DIRECTION.md](ART-DIRECTION.md) for the original built-in imagegen prompt, saved background path, and vector brand artwork details.
