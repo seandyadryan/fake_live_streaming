@@ -39,7 +39,9 @@ class StudioFlowTest {
         compose.onNodeWithText("Your camera, just for you").assertIsDisplayed()
         compose.onNodeWithText("Use background").performClick()
         compose.runOnIdle { assertFalse(model.config.camera) }
-        compose.onNodeWithText("Start practice live").performScrollTo().performClick()
+        compose.onNodeWithText("Start practice live").performScrollTo()
+        screenshot("05-customize")
+        compose.onNodeWithText("Start practice live").performClick()
         compose.onNodeWithText("SIMULATED").assertIsDisplayed()
         compose.runOnIdle {
             repeat(32) { model.tick() }

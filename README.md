@@ -68,7 +68,7 @@ The workflows build artifacts; they do not publish to Google Play. Increment ver
 
 ## Screenshots
 
-`StudioFlowTest` exercises profile editing, practice, gifts, pause, summary, recreation, history persistence, privacy, and deletion. With instrumentation argument `capture=true` it saves four actual UI screenshots under the app's external files `screenshots` directory.
+`StudioFlowTest` exercises profile editing, practice, gifts, pause, summary, recreation, history persistence, privacy, and deletion. With instrumentation argument `capture=true` it saves five actual UI screenshots under the app's external files `screenshots` directory.
 
 ```sh
 adb shell am instrument -w -e capture true \

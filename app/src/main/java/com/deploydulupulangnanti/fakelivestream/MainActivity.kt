@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -59,7 +60,10 @@ private val Border = Color(0xFF2D3044)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+        )
         setContent {
             MaterialTheme(colorScheme = darkColorScheme(
                 primary = Violet, onPrimary = Ink, secondary = Mint, background = Ink,
@@ -319,7 +323,7 @@ private fun LiveScreen(model: StudioModel, onEnd: () -> Unit) {
                 AnimatedContent(targetState = state.gift, label = "Gift arrival") { event ->
                     if (event != null) GiftBanner(event) else Spacer(Modifier.height(4.dp))
                 }
-                if (!wide) ChatFeed(state.chat.takeLast(4), Modifier.fillMaxWidth().heightIn(max = 175.dp))
+                if (!wide) ChatFeed(state.chat.takeLast(3), Modifier.fillMaxWidth().heightIn(max = 175.dp))
                 Spacer(Modifier.height(10.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     OutlinedTextField(value = message, onValueChange = { message = it.take(160) }, placeholder = { Text("Say something…", fontSize = 12.sp) },
@@ -368,7 +372,9 @@ private fun PulseOrb() {
 
 @Composable
 private fun ChatFeed(chat: List<ChatLine>, modifier: Modifier = Modifier) {
-    Column(modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+    val scroll = rememberScrollState()
+    LaunchedEffect(chat.lastOrNull()?.id, scroll.maxValue) { scroll.scrollTo(scroll.maxValue) }
+    Column(modifier.verticalScroll(scroll), verticalArrangement = Arrangement.spacedBy(9.dp)) {
         chat.forEachIndexed { index, line ->
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Box(Modifier.size(26.dp).background(listOf(Violet, Mint, Coral)[index % 3].copy(.22f), CircleShape), contentAlignment = Alignment.Center) {
@@ -464,14 +470,16 @@ private fun HistoryScreen(model: StudioModel) {
 @Composable
 private fun SummaryScreen(model: StudioModel) {
     val record = model.latest ?: return
-    Column(Modifier.widthIn(max = 640.dp).fillMaxSize().verticalScroll(rememberScrollState()).padding(28.dp), verticalArrangement = Arrangement.spacedBy(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Spacer(Modifier.height(12.dp))
+    BoxWithConstraints(Modifier.widthIn(max = 640.dp).fillMaxSize()) {
+    val compact = maxHeight < 900.dp
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(if (compact) 20.dp else 28.dp), verticalArrangement = Arrangement.spacedBy(if (compact) 12.dp else 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        if (!compact) Spacer(Modifier.height(12.dp))
         Tag("PRACTICE COMPLETE", Mint)
-        PulseOrb()
+        if (!compact) PulseOrb()
         Text("Look at you go.", fontSize = 36.sp, fontWeight = FontWeight.Bold, letterSpacing = (-1).sp)
-        Text("One more step toward feeling at home on camera.", color = Muted)
+        if (!compact) Text("One more step toward feeling at home on camera.", color = Muted)
         Surface(shape = RoundedCornerShape(24.dp), color = Panel) {
-            Column(Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            Column(Modifier.fillMaxWidth().padding(if (compact) 16.dp else 24.dp), verticalArrangement = Arrangement.spacedBy(if (compact) 12.dp else 20.dp)) {
                 Text(record.title, fontWeight = FontWeight.SemiBold)
                 Row {
                     Metric(duration(record.seconds), "Time practiced", Modifier.weight(1f), Violet)
@@ -486,6 +494,7 @@ private fun SummaryScreen(model: StudioModel) {
         Text("The confidence is yours.\nThe audience and gifts are simulated.", color = Muted, fontSize = 13.sp)
         Button(onClick = { model.screen = "studio" }, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(18.dp)) { Text("Back to studio", fontWeight = FontWeight.Bold) }
         TextButton(onClick = { model.screen = "history" }) { Text("View my sessions") }
+    }
     }
 }
 
