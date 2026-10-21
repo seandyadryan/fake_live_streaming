@@ -30,7 +30,7 @@ try {
         Adb shell am force-stop $package
         $result = Adb shell am instrument -w -e capture true "$package.test/androidx.test.runner.AndroidJUnitRunner"
         $result
-        if (($result -join "`n") -notmatch 'OK \(1 test\)') { throw "Instrumented test failed for $($viewport.name)" }
+        if (($result -join "`n") -notmatch 'OK \(2 tests\)') { throw "Instrumented test failed for $($viewport.name)" }
         $destination = Join-Path $repoRoot "store\screenshots\$($viewport.name)"
         New-Item -ItemType Directory -Force $destination | Out-Null
         Adb pull "/sdcard/Android/data/$package/files/screenshots/." $destination

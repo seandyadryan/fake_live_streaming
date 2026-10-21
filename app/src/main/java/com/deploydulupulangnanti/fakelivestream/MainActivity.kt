@@ -53,13 +53,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private val Ink = Color(0xFF0C0D16)
-private val Panel = Color(0xFF181A29)
-private val Muted = Color(0xFFA5A8BF)
-private val Violet = Color(0xFFA998FF)
-private val Mint = Color(0xFF69E7D2)
-private val Coral = Color(0xFFFF7696)
-private val Border = Color(0xFF2D3044)
+internal val Ink = Color(0xFF0C0D16)
+internal val Panel = Color(0xFF181A29)
+internal val Muted = Color(0xFFA5A8BF)
+internal val Violet = Color(0xFFA998FF)
+internal val Mint = Color(0xFF69E7D2)
+internal val Coral = Color(0xFFFF7696)
+internal val Border = Color(0xFF2D3044)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -163,11 +163,11 @@ private fun StudioScreen(model: StudioModel) {
 @Composable
 private fun StudioPreview(config: StudioConfig) {
     Box(Modifier.fillMaxWidth().height(208.dp).clip(RoundedCornerShape(24.dp))) {
-        Backdrop(config.scene)
+        StageBackground(config)
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Ink.copy(alpha = .8f)))))
         Column(Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Tag("✦  ${config.scene.label.uppercase()} STAGE", Color.White)
+                Tag(if (config.photo != null) "PHOTO STAGE" else "✦  ${config.scene.label.uppercase()} STAGE", Color.White)
                 Tag("SIMULATION", Mint)
             }
             Column {
@@ -192,7 +192,26 @@ private fun StudioControls(model: StudioModel) {
         model.configure(model.config.copy(camera = granted))
         cameraError = !granted
     }
+    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let(model::importPhoto)
+    }
     val config = model.config
+    Surface(shape = RoundedCornerShape(20.dp), color = Panel) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Your live photo", fontWeight = FontWeight.SemiBold)
+            Text("Choose a photo for your live background and profile. Kept only on this device.", color = Muted, fontSize = 12.sp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                OutlinedButton(enabled = !model.importingPhoto, onClick = {
+                    photoPicker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                }) { Text(if (model.importingPhoto) "Preparing photo…" else if (config.photo == null) "Choose photo" else "Change photo") }
+                if (config.photo != null) TextButton(onClick = model::removePhoto) { Text("Remove photo") }
+            }
+        }
+    }
+    model.photoError?.let { error ->
+        AlertDialog(onDismissRequest = { model.photoError = null }, title = { Text("Try another photo") }, text = { Text(error) },
+            confirmButton = { TextButton(onClick = { model.photoError = null }) { Text("Got it") } })
+    }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Avatar(config.name, Violet)
         Spacer(Modifier.width(12.dp))
@@ -204,21 +223,23 @@ private fun StudioControls(model: StudioModel) {
     }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         SectionLabel("01", "Choose your audience")
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            Crowd.entries.forEach { crowd ->
-                val active = config.crowd == crowd
-                Surface(onClick = { model.configure(config.copy(crowd = crowd)) }, modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(16.dp), color = if (active) Color(0xFF2A2344) else Panel,
-                    border = BorderStroke(1.dp, if (active) Violet else Border)) {
-                    Column(Modifier.padding(vertical = 14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(when (crowd) { Crowd.COZY -> "◌"; Crowd.BUZZING -> "✦"; Crowd.SPOTLIGHT -> "✧" }, fontSize = 25.sp, color = if (active) Violet else Muted)
-                        Text(crowd.label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                        Text("${compact(crowd.base)} viewers", fontSize = 10.sp, color = Muted)
+        Crowd.entries.chunked(2).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                row.forEach { crowd ->
+                    val active = config.crowd == crowd
+                    Surface(onClick = { model.configure(config.copy(crowd = crowd)) }, modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp), color = if (active) Color(0xFF2A2344) else Panel,
+                        border = BorderStroke(1.dp, if (active) Violet else Border)) {
+                        Column(Modifier.padding(14.dp)) {
+                            Text(crowd.label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = if (active) Violet else Color.White)
+                            Text("simulated viewers", fontSize = 10.sp, color = Muted)
+                        }
                     }
                 }
             }
         }
     }
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SectionLabel("02", "Set the mood")
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -239,7 +260,7 @@ private fun StudioControls(model: StudioModel) {
             }
         }
     }
-    Button(onClick = { model.start() }, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(18.dp)) {
+    Button(enabled = !model.importingPhoto, onClick = { model.start() }, modifier = Modifier.fillMaxWidth().height(56.dp), shape = RoundedCornerShape(18.dp)) {
         Icon(StudioIcons.PlayArrow, null)
         Spacer(Modifier.width(8.dp))
         Text("Start practice live", fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -270,105 +291,6 @@ private fun ProfileDialog(config: StudioConfig, onClose: () -> Unit, onSave: (St
 }
 
 @Composable
-private fun LiveScreen(model: StudioModel, onEnd: () -> Unit) {
-    var giftsOpen by remember { mutableStateOf(false) }
-    var message by rememberSaveable { mutableStateOf("") }
-    var frontCamera by rememberSaveable { mutableStateOf(true) }
-    val state = model.live
-    val config = model.config
-    val context = LocalContext.current
-    val canUseCamera = config.camera && ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val compactRoom = maxHeight < 560.dp || WindowInsets.ime.getBottom(LocalDensity.current) > 0
-        val wide = maxWidth >= 760.dp && !compactRoom
-        Backdrop(config.scene)
-        if (canUseCamera) CameraPreview(frontCamera, Modifier.fillMaxSize())
-        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Ink.copy(alpha = .65f), Color.Transparent, Ink.copy(alpha = .95f)))))
-        Row(Modifier.fillMaxSize().safeDrawingPadding().imePadding().padding(if (wide) 28.dp else 16.dp), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
-            Column(Modifier.weight(1f).fillMaxHeight()) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Avatar(config.name, Violet)
-                    Spacer(Modifier.width(10.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(config.name.ifBlank { "Creator" }, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Text("${duration(state.seconds)}  ·  Practice room", color = Color.White.copy(.75f), fontSize = 11.sp)
-                    }
-                    Tag("SIMULATED", Mint)
-                    IconButton(onClick = onEnd) { Icon(StudioIcons.Close, "End session") }
-                }
-                if (!compactRoom) {
-                Spacer(Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    StatPill(StudioIcons.Visibility, compact(state.viewers))
-                    StatPill(StudioIcons.FavoriteBorder, compact(state.likes))
-                    StatPill(StudioIcons.Redeem, "${state.gifts}")
-                }
-                Spacer(Modifier.height(20.dp))
-                Text(config.title.ifBlank { "My practice room" }, fontSize = 15.sp, fontWeight = FontWeight.Medium, maxLines = 2)
-                Spacer(Modifier.height(6.dp))
-                Text("${config.topic.label}  ·  ${config.crowd.label} audience", color = Color.White.copy(.65f), fontSize = 11.sp)
-                } else Spacer(Modifier.height(8.dp))
-                BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    val showOrb = maxHeight >= 180.dp
-                    if (model.paused && !compactRoom) Surface(color = Ink.copy(.8f), shape = RoundedCornerShape(24.dp)) {
-                        Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(StudioIcons.Pause, null, tint = Violet, modifier = Modifier.size(36.dp))
-                            Text("Take a breath.", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                            Text("Your practice is paused.", color = Muted)
-                        }
-                    } else if (!canUseCamera && !compactRoom) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            if (showOrb) {
-                                PulseOrb()
-                                Spacer(Modifier.height(14.dp))
-                            }
-                            Text("The stage is yours", fontSize = 23.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-.5).sp)
-                            Text("Speak freely. This is your space.", fontSize = 12.sp, color = Color.White.copy(.65f))
-                        }
-                    }
-                }
-                AnimatedContent(targetState = if (compactRoom) null else state.gift, label = "Gift arrival") { event ->
-                    if (event != null) GiftBanner(event) else Spacer(Modifier.height(4.dp))
-                }
-                if (!wide) ChatFeed(state.chat.takeLast(if (compactRoom) 2 else 3), Modifier.fillMaxWidth().heightIn(max = if (compactRoom) 100.dp else 175.dp))
-                Spacer(Modifier.height(10.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    OutlinedTextField(value = message, onValueChange = { message = it.take(160) }, placeholder = { Text("Say something…", fontSize = 12.sp) },
-                        modifier = Modifier.weight(1f), singleLine = true, shape = RoundedCornerShape(28.dp),
-                        enabled = !model.paused,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                        keyboardActions = KeyboardActions(onSend = { model.comment(message); message = "" }),
-                        trailingIcon = { IconButton(enabled = message.isNotBlank() && !model.paused, onClick = { model.comment(message); message = "" }) { Icon(StudioIcons.Send, "Send comment", tint = Violet) } })
-                    IconButton(onClick = { giftsOpen = true }, enabled = !model.paused, modifier = Modifier.background(Violet, CircleShape)) { Icon(StudioIcons.Redeem, "Open gifts", tint = Ink) }
-                    IconButton(onClick = { model.like() }, enabled = !model.paused) { Icon(StudioIcons.Favorite, "Send heart", tint = Coral) }
-                }
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = { model.paused = !model.paused }) {
-                        Icon(if (model.paused) StudioIcons.PlayArrow else StudioIcons.Pause, null, modifier = Modifier.size(18.dp))
-                        Text(if (model.paused) "Resume" else "Pause", fontSize = 12.sp)
-                    }
-                    if (canUseCamera) IconButton(onClick = { frontCamera = !frontCamera }) { Icon(StudioIcons.Cameraswitch, "Switch camera") }
-                    Spacer(Modifier.weight(1f))
-                    Text("Virtual audience · No real money", color = Muted, fontSize = 10.sp)
-                }
-            }
-            if (wide) Surface(modifier = Modifier.width(320.dp).fillMaxHeight(), color = Ink.copy(alpha = .78f), shape = RoundedCornerShape(24.dp)) {
-                Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                    Tag("YOUR PRACTICE ROOM", Mint)
-                    Text("Good vibes.\nGreat practice.", fontSize = 29.sp, fontWeight = FontWeight.Bold, lineHeight = 34.sp)
-                    Text("A virtual crowd to help you find your flow.", color = Muted)
-                    HorizontalDivider(color = Border)
-                    Text("LIVE CHAT", color = Violet, fontSize = 11.sp, letterSpacing = 2.sp)
-                    ChatFeed(state.chat, Modifier.weight(1f))
-                    OfflineNote()
-                }
-            }
-        }
-    }
-    if (giftsOpen) GiftSheet(onClose = { giftsOpen = false }, onGift = { model.gift(it); giftsOpen = false })
-}
-
-@Composable
 private fun PulseOrb() {
     val transition = rememberInfiniteTransition(label = "Studio glow")
     val alpha by transition.animateFloat(.3f, .7f, infiniteRepeatable(tween(2400), RepeatMode.Reverse), label = "Glow opacity")
@@ -380,7 +302,7 @@ private fun PulseOrb() {
 }
 
 @Composable
-private fun ChatFeed(chat: List<ChatLine>, modifier: Modifier = Modifier) {
+internal fun ChatFeed(chat: List<ChatLine>, modifier: Modifier = Modifier) {
     val scroll = rememberScrollState()
     LaunchedEffect(chat.lastOrNull()?.id, scroll.maxValue) { scroll.scrollTo(scroll.maxValue) }
     Column(modifier.verticalScroll(scroll), verticalArrangement = Arrangement.spacedBy(9.dp)) {
@@ -394,49 +316,6 @@ private fun ChatFeed(chat: List<ChatLine>, modifier: Modifier = Modifier) {
                     Text(line.message, fontSize = 12.sp, lineHeight = 16.sp)
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun GiftBanner(event: GiftEvent) {
-    Surface(shape = RoundedCornerShape(18.dp), color = Color(0xFF302343), modifier = Modifier.padding(vertical = 10.dp).widthIn(max = 360.dp), border = BorderStroke(1.dp, Violet.copy(.4f))) {
-        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(event.gift.symbol, fontSize = 36.sp, color = Color(event.gift.color))
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text("${event.sender} sent ${event.gift.name}", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                Text("Virtual gift · just for fun", color = Muted, fontSize = 10.sp)
-            }
-            Text("×1", fontSize = 21.sp, color = Violet, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun GiftSheet(onClose: () -> Unit, onGift: (Gift) -> Unit) {
-    ModalBottomSheet(onDismissRequest = onClose, containerColor = Panel,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().align(Alignment.CenterHorizontally).padding(horizontal = 24.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("A little extra magic.", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-            Text("Trigger a gift from your virtual audience.", color = Muted, fontSize = 14.sp)
-            giftCatalog.chunked(3).forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    row.forEach { gift ->
-                        Surface(onClick = { onGift(gift) }, modifier = Modifier.weight(1f), color = Ink, shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, Border)) {
-                            Column(Modifier.padding(vertical = 18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(gift.symbol, fontSize = 34.sp, color = Color(gift.color))
-                                Spacer(Modifier.height(6.dp))
-                                Text(gift.name, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                                Text("FREE VIRTUAL GIFT", fontSize = 7.sp, color = Muted)
-                            }
-                        }
-                    }
-                }
-            }
-            Text("No purchases. No cash value. Just a moment of joy.", color = Muted, fontSize = 11.sp)
-            Spacer(Modifier.height(28.dp))
         }
     }
 }
@@ -539,18 +418,18 @@ private fun AboutScreen(model: StudioModel) {
 }
 
 @Composable
-private fun Backdrop(scene: Scene) {
+internal fun Backdrop(scene: Scene) {
     Box(Modifier.fillMaxSize()) {
         if (scene == Scene.AURORA) Image(painterResource(R.drawable.studio_aurora), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         else Box(Modifier.fillMaxSize().background(Brush.linearGradient(if (scene == Scene.SUNSET) listOf(Color(0xFF5B2A4C), Color(0xFF30253E), Color(0xFF101522)) else listOf(Color(0xFF192E43), Color(0xFF111A32), Color(0xFF080B19)))))
     }
 }
 @Composable
-private fun Tag(text: String, color: Color) {
+internal fun Tag(text: String, color: Color) {
     Surface(color = Ink.copy(.6f), shape = RoundedCornerShape(8.dp)) { Text(text, Modifier.padding(horizontal = 9.dp, vertical = 6.dp), color = color, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = .6.sp) }
 }
 @Composable
-private fun Avatar(name: String, color: Color) {
+internal fun Avatar(name: String, color: Color) {
     Box(Modifier.size(42.dp).background(color.copy(.18f), CircleShape).border(1.dp, color.copy(.5f), CircleShape), contentAlignment = Alignment.Center) {
         Text(name.trim().split(" ").filter { it.isNotBlank() }.take(2).joinToString("") { it.take(1).uppercase() }, color = color, fontWeight = FontWeight.Bold, fontSize = 13.sp)
     }
@@ -614,7 +493,7 @@ private fun InfoCard(icon: ImageVector, title: String, body: String) {
     }
 }
 
-const val PRIVACY_TEXT = """Effective date: October 20, 2026
+const val PRIVACY_TEXT = """Effective date: October 21, 2026
 
 LiveMuse is provided by PT Deploy Dulu Pulang Nanti.
 
@@ -626,6 +505,9 @@ If you grant camera permission, the camera is used only for an on-screen preview
 
 Local information
 Your creator name, room preferences, and up to 50 session summaries are saved in the app's private storage on your device. Comments are held only for the current session. Android app backup is disabled. Delete session summaries from About, or remove all app data through Android Settings or by uninstalling the app.
+
+Photos
+If you choose a photo, Android's system picker grants access only to the image you select. LiveMuse saves a resized copy without the original metadata in private app storage for your live background and profile. No photo is uploaded or shared. Change photo replaces the copy; Remove photo deletes it. Clearing app storage or uninstalling also removes it. Broad photo-library access is not requested.
 
 Simulated interactions
 Viewers, comments, likes, and gifts are fictional, generated on your device. Gifts have no cash value. No content is broadcast to other people.

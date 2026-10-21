@@ -21,7 +21,7 @@ assert len(screenshots) >= 20, "Capture five screenshots in each device group be
 assert (ROOT / "store/promo/livemuse-promo.mp4").is_file(), "Create the promo first."
 hashes = {path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in binaries}
 (DEST / "SHA256SUMS.json").write_text(json.dumps(hashes, indent=2) + "\n", encoding="utf-8")
-archive = DEST / "LiveMuse-1.0.0-PlayStore.zip"
+archive = DEST / "LiveMuse-1.1.0-PlayStore.zip"
 with ZipFile(archive, "w", ZIP_DEFLATED, compresslevel=5) as bundle:
     for path in binaries:
         bundle.write(path, "release/" + path.name)

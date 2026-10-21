@@ -5,6 +5,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import android.net.Uri
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -17,12 +22,32 @@ class StudioModel(application: Application) : AndroidViewModel(application) {
     var live by mutableStateOf(LiveState()); private set
     var paused by mutableStateOf(false)
     var latest by mutableStateOf<SessionRecord?>(null); private set
+    var importingPhoto by mutableStateOf(false); private set
+    var photoError by mutableStateOf<String?>(null)
+
+    fun importPhoto(uri: Uri) {
+        if (importingPhoto) return
+        importingPhoto = true
+        viewModelScope.launch {
+            try {
+                val name = withContext(Dispatchers.IO) { PhotoStore.import(getApplication(), uri) }
+                val old = PhotoStore.file(getApplication(), config.photo)
+                configure(config.copy(photo = name, camera = false))
+                withContext(Dispatchers.IO) { old?.delete() }
+            } catch (_: Exception) { photoError = "Could not open this photo. Choose a JPEG, PNG or WebP image under 20 MB." }
+            finally { importingPhoto = false }
+        }
+    }
+    fun removePhoto() {
+        PhotoStore.file(getApplication(), config.photo)?.delete()
+        configure(config.copy(photo = null))
+    }
 
     fun configure(next: StudioConfig) {
         config = next.copy(name = next.name.take(32), title = next.title.take(80))
         prefs.edit().putString("name", config.name).putString("title", config.title)
             .putString("crowd", config.crowd.name).putString("scene", config.scene.name)
-            .putString("topic", config.topic.name).putBoolean("gifts", config.randomGifts).apply()
+            .putString("topic", config.topic.name).putBoolean("gifts", config.randomGifts).putString("photo", config.photo).apply()
     }
     fun start() { live = simulator.initial(config); paused = false; screen = "live" }
     fun tick() { if (screen == "live" && !paused) live = simulator.step(live, config) }
@@ -49,7 +74,8 @@ class StudioModel(application: Application) : AndroidViewModel(application) {
         crowd = runCatching { Crowd.valueOf(prefs.getString("crowd", "")!!) }.getOrDefault(Crowd.BUZZING),
         scene = runCatching { Scene.valueOf(prefs.getString("scene", "")!!) }.getOrDefault(Scene.AURORA),
         topic = runCatching { Topic.valueOf(prefs.getString("topic", "")!!) }.getOrDefault(Topic.CHAT),
-        randomGifts = prefs.getBoolean("gifts", true)
+        randomGifts = prefs.getBoolean("gifts", true),
+        photo = prefs.getString("photo", null)?.takeIf { PhotoStore.file(getApplication(), it) != null }
     )
     private fun loadHistory(): List<SessionRecord> = runCatching {
         val a = JSONArray(prefs.getString("history", "[]"))

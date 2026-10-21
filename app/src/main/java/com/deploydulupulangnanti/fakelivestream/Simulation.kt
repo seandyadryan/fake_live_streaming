@@ -2,8 +2,11 @@ package com.deploydulupulangnanti.fakelivestream
 
 import kotlin.random.Random
 
-enum class Crowd(val label: String, val base: Int, val interval: Int) {
-    COZY("Cozy", 24, 5), BUZZING("Buzzing", 420, 3), SPOTLIGHT("Spotlight", 2400, 2)
+enum class Crowd(val label: String, val min: Int, val max: Int, val base: Int, val interval: Int) {
+    COZY("0–100", 0, 100, 24, 5),
+    BUZZING("100–1,000", 100, 1_000, 420, 3),
+    SPOTLIGHT("1,000–10,000", 1_000, 10_000, 2_400, 2),
+    VIRAL("10,000–100,000", 10_000, 100_000, 24_000, 1)
 }
 enum class Scene(val label: String) { AURORA("Aurora"), SUNSET("Sunset"), MIDNIGHT("Midnight") }
 enum class Topic(val label: String) { CHAT("Just chatting"), MUSIC("Music & creativity"), STORY("Story time") }
@@ -14,19 +17,22 @@ data class StudioConfig(
     val scene: Scene = Scene.AURORA,
     val topic: Topic = Topic.CHAT,
     val randomGifts: Boolean = true,
-    val camera: Boolean = false
+    val camera: Boolean = false,
+    val photo: String? = null
 )
-data class Gift(val id: String, val symbol: String, val name: String, val color: Long)
+data class Gift(val id: String, val symbol: String, val name: String, val color: Long, val coins: Int, val premium: Boolean = false)
 val giftCatalog = listOf(
-    Gift("spark", "✦", "Spark", 0xFFFFD185),
-    Gift("heart", "♥", "Love note", 0xFFFF7696),
-    Gift("bloom", "✿", "Bloom", 0xFFA998FF),
-    Gift("gem", "◆", "Moon gem", 0xFF69E7D2),
-    Gift("comet", "☄", "Comet", 0xFF83B8FF),
-    Gift("crown", "♛", "Spotlight", 0xFFFFD185)
+    Gift("rose", "✿", "Rose", 0xFFFF7696, 1),
+    Gift("coffee", "☕", "Coffee", 0xFFFFD185, 5),
+    Gift("heart", "♥", "Sweet heart", 0xFFFF7696, 10),
+    Gift("bloom", "✿", "Bloom", 0xFFA998FF, 20),
+    Gift("comet", "☄", "Comet", 0xFF83B8FF, 100, true),
+    Gift("crown", "♛", "Crown", 0xFFFFD185, 500, true),
+    Gift("gem", "◆", "Moon gem", 0xFF69E7D2, 250, true),
+    Gift("spark", "✦", "Spotlight", 0xFFFFD185, 1_000, true)
 )
 data class ChatLine(val id: Int, val name: String, val message: String)
-data class GiftEvent(val id: Int, val sender: String, val gift: Gift)
+data class GiftEvent(val id: Int, val sender: String, val gift: Gift, val combo: Int = 1)
 data class LiveState(
     val seconds: Int = 0,
     val viewers: Int = 0,
@@ -47,7 +53,9 @@ class Simulator(private val random: Random = Random.Default) {
 
     fun step(state: LiveState, config: StudioConfig): LiveState {
         val seconds = state.seconds + 1
-        val viewers = (state.viewers + random.nextInt(-8, 15) * (config.crowd.ordinal + 1)).coerceIn(1, 999_999)
+        val crowd = config.crowd
+        val jitter = maxOf(1, (crowd.max - crowd.min) / 80)
+        val viewers = (state.viewers + random.nextInt(-jitter, jitter + 1)).coerceIn(crowd.min, crowd.max)
         val newChat = seconds % config.crowd.interval == 0
         val message = when {
             seconds % 4 != 0 -> general.random(random)
@@ -68,7 +76,8 @@ class Simulator(private val random: Random = Random.Default) {
 
     fun sendGift(state: LiveState, gift: Gift) = state.copy(
         gifts = state.gifts + 1,
-        gift = GiftEvent(state.gifts + 1, names.random(random), gift)
+        gift = GiftEvent(state.gifts + 1, if (state.gift?.gift?.id == gift.id) state.gift.sender else names.random(random), gift,
+            if (state.gift?.gift?.id == gift.id) state.gift.combo + 1 else 1)
     )
     fun comment(state: LiveState, text: String): LiveState {
         if (text.isBlank()) return state

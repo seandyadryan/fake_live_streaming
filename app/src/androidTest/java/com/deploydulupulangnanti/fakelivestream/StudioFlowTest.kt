@@ -71,9 +71,13 @@ class StudioFlowTest {
         }
         screenshot("02-live")
         compose.onNodeWithContentDescription("Open gifts").performClick()
-        compose.onNodeWithText("A little extra magic.").assertIsDisplayed()
+        compose.onNodeWithText("Virtual gifts").assertIsDisplayed()
         screenshot("03-gifts")
         compose.onNodeWithText("Moon gem").performClick()
+        compose.onNodeWithText("Send gift").performClick()
+        compose.onNodeWithText("Combo +1").performClick()
+        compose.runOnIdle { assertEquals(2, model.live.gift?.combo) }
+        compose.onNodeWithContentDescription("Close gifts").performClick()
         compose.onNodeWithText("Pause").performClick()
         compose.onNodeWithText("Take a breath.").assertIsDisplayed()
         compose.runOnIdle {
@@ -105,5 +109,40 @@ class StudioFlowTest {
         compose.onNodeWithText("Delete session history").performScrollTo().performClick()
         compose.onNodeWithText("Delete history").performClick()
         compose.runOnIdle { assertTrue(model.history.isEmpty()) }
+    }
+
+    @Test fun photoImportPersistsNormalizesAndRemovesPrivateCopy() {
+        val context = compose.activity.application
+        val input = File(context.cacheDir, "source-photo.png")
+        val bitmap = Bitmap.createBitmap(3000, 1000, Bitmap.Config.ARGB_8888)
+        bitmap.eraseColor(android.graphics.Color.MAGENTA)
+        input.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        bitmap.recycle()
+        compose.runOnIdle { model.importPhoto(android.net.Uri.fromFile(input)) }
+        compose.waitUntil(15_000) { !model.importingPhoto }
+        lateinit var copy: File
+        compose.runOnIdle {
+            assertNull(model.photoError)
+            copy = requireNotNull(PhotoStore.file(context, model.config.photo))
+            assertTrue(copy.exists())
+            val decoded = android.graphics.BitmapFactory.decodeFile(copy.path)
+            assertTrue(maxOf(decoded.width, decoded.height) <= 2048)
+            decoded.recycle()
+            assertEquals(model.config.photo, StudioModel(context).config.photo)
+        }
+        compose.onNodeWithText("Remove photo").performScrollTo().assertIsDisplayed()
+        input.writeText("invalid image")
+        compose.runOnIdle { model.importPhoto(android.net.Uri.fromFile(input)) }
+        compose.waitUntil(15_000) { !model.importingPhoto }
+        compose.runOnIdle {
+            assertNotNull(model.photoError)
+            assertEquals(copy.name, model.config.photo)
+            model.photoError = null
+            model.removePhoto()
+            assertNull(model.config.photo)
+            assertFalse(copy.exists())
+            assertNull(StudioModel(context).config.photo)
+        }
+        input.delete()
     }
 }
